@@ -1,7 +1,7 @@
 //------------------------------------------------------
-// module  : Tp-IFT2425-I.1.c
-// author  : 
-// date    : 
+// module  : Tp-IFT2425-I.2.c 
+// author  : Antoine Tesier (20288121), Sam Devaux ()
+// date    : 24.02.2025
 // version : 1.0
 // language: C
 // note    :
@@ -418,73 +418,23 @@ int main(int argc,char** argv)
 //--------------------------------------------------------------------------------
 
  //Affichage d�grad� de niveaux de gris dans Graph2D
- for(int i=0;i<length;i++) for(int j=0;j<width;j++) Graph2D[i][j]=0;
+ for(int i=0;i<length;i++) for(int j=0;j<width;j++) Graph2D[i][j]=j/2.0;
 
   
    //---------------------------
    //Algorithme NEWTON
    //---------------------------
 
-  // Question 1
+   double y[] = {0.11, 0.24, 0.27, 0.52, 1.13, 1.54, 1.71, 1.84, 1.92, 2.01};
+   double c0 = 0.25;
+
+   double cmvB = newtonCmv(dfB, c0, 1e-6, y);
+
+   double amvB = amv(y, cmvB);
+
+  printf("amv = %f", amvB);
+
   
-  int iterMax = 200;
-  double xk = 0.0;
-  double yl = 0.0;
-  double z = 0.0;
-
-  // On suppose que Graph2D est un tableau [512][512] d'entiers,
-  // bien initialisé à zero qq part.
-
-  for (int k = 0; k < 512; k++) {
-      // c = xk + j*yl
-      // Attention: 512/1.35 en entier vaut 379 si 1.35 n'est pas typé double
-      // Forçons tout en double pour éviter l'integer division
-      xk = 2.0 * ((double)k - 512.0/1.35) / 511.0;
-
-      for (int l = 0; l < 512; l++) {
-          yl = 2.0 * ((double)l - 512.0/2.0) / 511.0;
-
-          int iter = 0;
-          double xn = 0.0, yn = 0.0;
-          // On va stocker la trajectoire pour éviter de recalculer
-          static double trajX[201], trajY[201];
-
-          while (iter < iterMax) {
-              // On mémorise l'itération courante
-              trajX[iter] = xn;
-              trajY[iter] = yn;
-
-              double xn1 = xn*xn - yn*yn + xk;
-              double yn1 = 2.0 * xn * yn + yl;
-              xn = xn1;
-              yn = yn1;
-              z = sqrt(xn*xn + yn*yn);
-              iter++;
-              if (z > 2.0) {break;}
-              
-          }
-
-          // si z > 2 => le point c diverge
-          if (z > 2.0) {
-              // On trace la trajectoire
-              for (int i = 1; i < iter; i++) {
-                  // conversion (trajX[i], trajY[i]) => (k1, l1)
-                  // On utilise la même transformation
-                  double tx = trajX[i];
-                  double ty = trajY[i];
-                  int k1 = (int)( (512.0/1.35) + (tx * 511.0/2.0) );
-                  int l1 = (int)( (512.0/2.0) + (ty * 511.0/2.0) );
-                  
-
-                  // On teste pour ne pas sortir du tableau
-                  if (k1 >= 0 && k1 < 512 && l1 >= 0 && l1 < 512) {
-                      Graph2D[k1][l1] += 1;
-                  }
-              }
-          }
-      }
-  }
-
 
   
 

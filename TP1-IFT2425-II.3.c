@@ -1,6 +1,6 @@
 //------------------------------------------------------
-// module  : Tp-IFT2425-I.1.c
-// author  : Antoine Tesier (20288121), Sam Devaux ()
+// module  : Tp-IFT2425-I.c (question 1a-, 1b-, 1c-)
+// author  : Antoine Tessier (20288121), Same Devaux
 // date    : 24.02.2025
 // version : 1.0
 // language: C
@@ -308,85 +308,6 @@ void Egalise(float** img,int lgth,int wdth,int thresh)
 }
 
 //----------------------------------------------------------
-//---------------------------------------------------------- 
-//Fonctions pour faciliter les calculs
-//----------------------------------------------------------
-//----------------------------------------------------------
-
-// calcul f
-// parametre eps pour les approximation de derive (dfA, dfB)
-double f(const double y[], double cmv, double eps) {
-
-  //initialisatio des sommes
-  double sum1 = 0.0; 
-  double sum2 = 0.0; 
-  double sum3 = 0.0;
-
-  //calcul des sommes
-  for (int i = 0; i < 10; i++) {
-    sum1 += (pow(y[i]+eps, cmv))*log(y[i]+eps);
-    sum2 += pow(y[i]+eps, cmv);
-    sum3 += log(y[i]+eps);
-  }
-
-  return ((sum1/sum2) - 1/cmv - (1/10)*sum3);
-}
-
-// derivé selon l'approximation du 1a
-double dfA(const double y[], double cmv) {
-  double eps = 1e-5;
-  return ((f(y, cmv, eps)-f(y, cmv, 0))/eps);
-}
-
-// derivé selon l'approximation du 1b
-double dfB(const double y[], double cmv) {
-  double eps = 1e-5;
-
-  return (-f(y, cmv, 2*eps) + 8*f(y, cmv, eps) - 8*f(y, cmv, -eps) + f(y, cmv, -2*eps))/(12*eps);
-}
-
-// derivé selon l'approximation du 1c
-double dfC(const double y[], double cmv) {
-
-  double sum = 0.0;
-
-  for (int i =0; i < 10; i++) {
-      sum += (log(y[i])*(log(y[i])-1))/pow(y[i], cmv) + 1/pow(cmv,2);
-  }
-
-  return sum;
-}
-
-// calcul de cmv selon la methode de newton
-double newtonCmv(double (*df)(const double y[], double cmv), double c0, double tol, const double y[]) {
-  
-  double cmv = c0 - f(y, c0, 0)/df(y, c0);
-  double cmvPrev = 2*(c0 + tol); 
-
-  while (fabs(cmv-cmvPrev) > 1e-6 && fabs(f(y, cmv, 0))>1e-6 && (df(y, cmv) != 0)) {
-    cmvPrev = cmv;
-    cmv = cmv - f(y, cmv, 0)/df(y, cmv);
-   }
-
-   return cmv;
-  
-}
-
-double amv(const double y[], double cmv) {
-  double amv = 0.0;
-
-   for (int i = 0; i < 10; i++) {
-    amv += pow(y[i], cmv);
-   }
-
-   amv = pow(0.1*amv, 1/cmv);
-   
-   return amv;
-}
-
-
-
-//----------------------------------------------------------
 //----------------------------------------------------------
 // PROGRAMME PRINCIPAL -------------------------------------
 //----------------------------------------------------------
@@ -418,23 +339,77 @@ int main(int argc,char** argv)
 //--------------------------------------------------------------------------------
 
  //Affichage d�grad� de niveaux de gris dans Graph2D
- for(int i=0;i<length;i++) for(int j=0;j<width;j++) Graph2D[i][j]=j/2.0;
+ for(int i=0;i<length;i++) for(int j=0;j<width;j++) Graph2D[i][j]=0;
 
   
    //---------------------------
    //Algorithme NEWTON
    //---------------------------
 
-   double y[] = {0.11, 0.24, 0.27, 0.52, 1.13, 1.54, 1.71, 1.84, 1.92, 2.01};
-   double c0 = 0.25;
-
-
-   double cmvA = newtonCmv(dfA, c0, 1e-6, y);
-
-   double amvA = amv(y, cmvA);
-
-    printf("amv = %f", amvA);
+  // Question 1
   
+  int iterMax = 200;
+  double xk = 0.0;
+  double yl = 0.0;
+  double z = 0.0;
+
+  // On suppose que Graph2D est un tableau [512][512] d'entiers,
+  // bien initialisé à zero qq part.
+
+  for (int k = 0; k < 512; k++) {
+      // c = xk + j*yl
+      // Attention: 512/1.35 en entier vaut 379 si 1.35 n'est pas typé double
+      // Forçons tout en double pour éviter l'integer division
+      xk = 2.0 * ((double)k - 512.0/1.35) / 511.0;
+
+      for (int l = 0; l < 512; l++) {
+          yl = 2.0 * ((double)l - 512.0/2.0) / 511.0;
+
+          int iter = 0;
+          double xn = 0.0, yn = 0.0;
+          // On va stocker la trajectoire pour éviter de recalculer
+          static double trajX[201], trajY[201];
+
+          while (iter < iterMax) {
+              // On mémorise l'itération courante
+              trajX[iter] = xn;
+              trajY[iter] = yn;
+
+              double xn1 = xn*xn - yn*yn + xk;
+              double yn1 = 2.0 * xn * yn + yl;
+              xn = xn1;
+              yn = yn1;
+              z = sqrt(xn*xn + yn*yn);
+              iter++;
+              if (z > 2.0) {break;}
+              
+          }
+
+          // si z > 2 => le point c diverge
+          if (z < 2.0) {
+              // On trace la trajectoire
+              for (int i = 1; i < iter; i++) {
+                  // conversion (trajX[i], trajY[i]) => (k1, l1)
+                  // On utilise la même transformation
+                  double tx = trajX[i];
+                  double ty = trajY[i];
+                  int k1 = (int)( (512.0/1.35) + (tx * 511.0/2.0) );
+                  int l1 = (int)( (512.0/2.0) + (ty * 511.0/2.0) );
+                  
+
+                  // On teste pour ne pas sortir du tableau
+                  if (k1 >= 0 && k1 < 512 && l1 >= 0 && l1 < 512) {
+                      Graph2D[k1][l1] += 1;
+                  }
+              }
+          }
+      }
+  }
+
+
+  
+
+
 
 
 //--------------------------------------------------------------------------------

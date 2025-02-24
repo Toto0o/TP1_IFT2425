@@ -1,5 +1,5 @@
 //------------------------------------------------------
-// module  : Tp-IFT2425-I.1.c
+// module  : Tp-IFT2425-I.3.c
 // author  : Antoine Tesier (20288121), Sam Devaux ()
 // date    : 24.02.2025
 // version : 1.0
@@ -428,13 +428,17 @@ int main(int argc,char** argv)
    double y[] = {0.11, 0.24, 0.27, 0.52, 1.13, 1.54, 1.71, 1.84, 1.92, 2.01};
    double c0 = 0.25;
 
+   double cmvC = newtonCmv(dfC, c0, 1e-6, y);
 
-   double cmvA = newtonCmv(dfA, c0, 1e-6, y);
+   double amvC = amv(y, cmvC);
 
-   double amvA = amv(y, cmvA);
+   printf("amv = %f", amvC);
 
-    printf("amv = %f", amvA);
   
+
+  
+
+
 
 
 //--------------------------------------------------------------------------------
